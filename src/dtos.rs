@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
 use crate::models::{User, UserRole};
+
+/// Data Transfer Object for user registration requests.
 #[derive(Debug, Serialize, Deserialize, Validate, Default, Clone)]
 pub struct RegisteredUserDto {
     #[validate(length(min = 1, message = "Name is required"))]
@@ -22,6 +24,8 @@ pub struct RegisteredUserDto {
     #[serde(rename = "confirmPassword")]
     pub confirm_password: String,
 }
+
+/// Data Transfer Object for user login requests.
 #[derive(Validate, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct LoginUserDto {
     #[validate(length(min = 1, message = "Email is required"), email(message = "Email is invalid"))]
@@ -30,6 +34,7 @@ pub struct LoginUserDto {
     pub password: String,
 }
 
+/// Represents pagination parameters from a request's query string.
 #[derive(Serialize, Deserialize, Validate)]
 pub struct RequestQueryDto {
     #[validate(range(min = 1))]
@@ -38,6 +43,7 @@ pub struct RequestQueryDto {
     pub limit: Option<usize>,
 }
 
+/// A public-facing, safe representation of a User, excluding sensitive fields like the password hash.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FilterUserDto {
     pub id: String,
@@ -51,8 +57,8 @@ pub struct FilterUserDto {
     pub updated_at: DateTime<Utc>,
 }
 
-impl FilterUserDto {
-    pub fn filter_user(user: &User) -> Self {
+impl From<&User> for FilterUserDto {
+    fn from(user: &User) -> Self {
         FilterUserDto {
             id: user.id.to_string(),
             username: user.username.clone(),
@@ -63,23 +69,29 @@ impl FilterUserDto {
             updated_at: user.updated_at,
         }
     }
+}
 
-    pub fn filter_users(user: &[User]) -> Vec<FilterUserDto> {
-        user.iter().map(|u| Self::filter_user(u)).collect()
+impl FilterUserDto {
+    /// Converts a slice of User models into a vector of safe-to-send FilterUserDto objects.
+    pub fn filter_users(users: &[User]) -> Vec<FilterUserDto> {
+        users.iter().map(FilterUserDto::from).collect()
     }
 }
 
+/// Wrapper for a single user, used for standardizing API response structure.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserData {
-    pub users: FilterUserDto,
+    pub user: FilterUserDto,
 }
 
+/// Standard API response for an operation that returns a single user.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserResponseDto {
     pub status: String,
     pub data: UserData,
 }
 
+/// Standard API response for an operation that returns a list of users.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserListResponseDto {
     pub status: String,
@@ -87,19 +99,21 @@ pub struct UserListResponseDto {
     pub results: i64,
 }
 
+/// Standard API response for a successful login, containing the session token.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResponseDto {
     pub status: String,
     pub token: String,
 }
 
+/// DTO for updating a user's name.
 #[derive(Validate, Debug, Default, Clone, Serialize, Deserialize)]
-
 pub struct NameUpdateDto {
     #[validate(length(min = 1, message = "Name is required"))]
     pub name: String,
 }
 
+/// DTO for updating a user's role.
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct RoleUpdateDto {
     #[validate(custom = "validate_user_role")]
@@ -112,6 +126,8 @@ fn validate_user_role(role: &UserRole) -> Result<(), ValidationError> {
         _ => Err(ValidationError::new("Invalid role")),
     }
 }
+
+/// DTO for a user to update their own password.
 #[derive(Debug, Serialize, Deserialize, Validate, Clone)]
 pub struct UserPasswordUpdateDto {
     #[validate(length(min = 1, message = "New password is required"))]
@@ -129,12 +145,14 @@ pub struct UserPasswordUpdateDto {
     pub old_password: String,
 }
 
+/// DTO for the token received from an email verification link's query string.
 #[derive(Serialize, Deserialize, Validate)]
 pub struct VerifyEmailQueryDto {
     #[validate(length(min = 1, message = "Token is required."))]
     pub token: String,
 }
 
+/// DTO for initiating a password reset request via email.
 #[derive(Deserialize, Serialize, Validate, Debug, Clone)]
 pub struct ForgotPasswordRequestDto {
     #[validate(
@@ -144,6 +162,7 @@ pub struct ForgotPasswordRequestDto {
     pub email: String,
 }
 
+/// DTO for completing a password reset with a token and new password.
 #[derive(Debug, Serialize, Deserialize, Validate, Clone)]
 pub struct ResetPasswordRequestDto {
     #[validate(length(min = 1, message = "Token is required."))]
