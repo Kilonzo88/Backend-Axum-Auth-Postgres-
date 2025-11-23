@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 use core::str;
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
@@ -46,7 +47,7 @@ pub struct RequestQueryDto {
 /// A public-facing, safe representation of a User, excluding sensitive fields like the password hash.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FilterUserDto {
-    pub id: String,
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub verified: bool,
@@ -60,7 +61,7 @@ pub struct FilterUserDto {
 impl From<&User> for FilterUserDto {
     fn from(user: &User) -> Self {
         FilterUserDto {
-            id: user.id.to_string(),
+            id: user.id,
             username: user.username.clone(),
             email: user.email.clone(),
             verified: user.verified,
