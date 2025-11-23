@@ -50,7 +50,7 @@ pub struct FilterUserDto {
     pub username: String,
     pub email: String,
     pub verified: bool,
-    pub role: String,
+    pub role: UserRole,
     #[serde(rename = "createdAt")]
     pub created_at: DateTime<Utc>,
     #[serde(rename = "updatedAt")]
@@ -64,7 +64,7 @@ impl From<&User> for FilterUserDto {
             username: user.username.clone(),
             email: user.email.clone(),
             verified: user.verified,
-            role: user.role.to_str().to_string(),
+            role: user.role,
             created_at: user.created_at,
             updated_at: user.updated_at,
         }
@@ -114,16 +114,26 @@ pub struct NameUpdateDto {
 }
 
 /// DTO for updating a user's role.
-#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RoleUpdateDto {
-    #[validate(custom = "validate_user_role")]
     pub role: UserRole,
 }
 
+impl Validate for RoleUpdateDto {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        if let Err(e) = validate_user_role(&self.role) {
+            let mut errors = validator::ValidationErrors::new();
+            errors.add("role", e);
+            return Err(errors);
+        }
+        Ok(())
+    }
+}
+
 fn validate_user_role(role: &UserRole) -> Result<(), ValidationError> {
-    match role {
+    match *role {
         UserRole::Admin | UserRole::User => Ok(()),
-        _ => Err(ValidationError::new("Invalid role")),
+        _ => Err(ValidationError::new("invalid_role_value")), // e.g., "guest" is not assignable
     }
 }
 
