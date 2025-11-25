@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 use core::str;
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
+use validator::Validate;
 
 use crate::models::{User, UserRole};
 
@@ -115,27 +115,10 @@ pub struct NameUpdateDto {
 }
 
 /// DTO for updating a user's role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 pub struct RoleUpdateDto {
-    pub role: UserRole,
-}
-
-impl Validate for RoleUpdateDto {
-    fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        if let Err(e) = validate_user_role(&self.role) {
-            let mut errors = validator::ValidationErrors::new();
-            errors.add("role", e);
-            return Err(errors);
-        }
-        Ok(())
-    }
-}
-
-fn validate_user_role(role: &UserRole) -> Result<(), ValidationError> {
-    match *role {
-        UserRole::Admin | UserRole::User => Ok(()),
-        _ => Err(ValidationError::new("invalid_role_value")), // e.g., "guest" is not assignable
-    }
+    #[validate(length(min = 1, message = "Role is required"))]
+    pub role: String,
 }
 
 /// DTO for a user to update their own password.
