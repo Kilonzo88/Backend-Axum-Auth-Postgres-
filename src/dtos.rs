@@ -102,9 +102,15 @@ pub struct UserListResponseDto {
 
 /// Standard API response for a successful login, containing the session token.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LoginResponseDto {
+pub struct UserLoginResponseDto {
     pub status: String,
     pub token: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Response {
+    pub status: &'static str,
+    pub message: String,
 }
 
 /// DTO for updating a user's name.
