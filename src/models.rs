@@ -13,7 +13,7 @@ pub enum UserRole {
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]
 pub struct User {
     pub id: uuid::Uuid,
-    pub username: String,
+    pub name: String,
     pub email: String,
     pub password: String,
     pub verified: bool,
