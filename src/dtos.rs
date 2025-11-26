@@ -48,7 +48,7 @@ pub struct RequestQueryDto {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FilterUserDto {
     pub id: Uuid,
-    pub username: String,
+    pub name: String,
     pub email: String,
     pub verified: bool,
     pub role: UserRole,
@@ -62,7 +62,7 @@ impl From<&User> for FilterUserDto {
     fn from(user: &User) -> Self {
         FilterUserDto {
             id: user.id,
-            username: user.username.clone(),
+            name: user.name.clone(),
             email: user.email.clone(),
             verified: user.verified,
             role: user.role,

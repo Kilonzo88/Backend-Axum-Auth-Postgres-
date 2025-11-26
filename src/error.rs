@@ -13,7 +13,7 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-#[derive(Debug, Clone)] // Added Clone here
+#[derive(Debug, Clone, PartialEq)] // Added Clone here
 pub enum ErrorMessage {
     EmptyPassword,
     ExceededMaxPasswordLength(usize),
