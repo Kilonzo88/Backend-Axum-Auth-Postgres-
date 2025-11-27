@@ -21,7 +21,7 @@ pub struct User {
     pub token_expires_at: Option<DateTime<Utc>>,
     pub role: UserRole,
     #[serde(rename = "createdAt")]
-    pub created_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
     #[serde(rename = "updatedAt")]
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
