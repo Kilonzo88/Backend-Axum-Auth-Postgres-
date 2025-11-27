@@ -17,16 +17,17 @@ impl DBClient {
 }
 
 #[async_trait]
-/// Defines a set of database operations related to user management
-pub trait UserExt {
+// The `'a` lifetime is required due to the use of `&str` references in async trait methods.
+// The `async_trait` macro needs explicit lifetime annotations to ensure correctness.
+pub trait UserExt<'a> {
     // --- Get Operations ---
     /// Retrieves a single user by their ID, name, email, or verification token.
     async fn get_user(
         &self,
         user_id: Option<Uuid>,
-        name: Option<&str>,
-        email: Option<&str>,
-        verification_token: Option<&str>,
+        name: Option<&'a str>,
+        email: Option<&'a str>,
+        verification_token: Option<&'a str>,
     ) -> Result<Option<User>, sqlx::Error>;
 
     /// Retrieves a paginated list of users.
@@ -76,25 +77,26 @@ pub trait UserExt {
     /// Verifies a user's email using a token.
     async fn verifed_token(
         &self,
-        token: &str,
+        token: &'a str,
     ) -> Result<(), sqlx::Error>;
 
     /// Adds a verification token to a user.
     async fn add_verifed_token(
         &self,
         user_id: Uuid,
-        token: &str,
+        token: &'a str,
         expires_at: DateTime<Utc>,
     ) -> Result<(), sqlx::Error>;
 }
 
-impl UserExt for DBClient {
+#[async_trait]
+impl<'a> UserExt<'a> for DBClient {
     async fn get_user(
         &self,
         user_id: Option<Uuid>,
-        name: Option<&str>,
-        email: Option<&str>,
-        verification_token: Option<&str>,
+        name: Option<&'a str>,
+        email: Option<&'a str>,
+        verification_token: Option<&'a str>,
     ) -> Result<Option<User>, sqlx::Error> {
         let mut user: Option<User> = None;
 
@@ -270,7 +272,7 @@ impl UserExt for DBClient {
 
     async fn verifed_token(
         &self,
-        token: &str,
+        token: &'a str,
     ) -> Result<(), sqlx::Error> {
         let _ =sqlx::query!(
             r#"
@@ -291,7 +293,7 @@ impl UserExt for DBClient {
     async fn add_verifed_token(
         &self,
         user_id: Uuid,
-        token: &str,
+        token: &'a str,
         expires_at: DateTime<Utc>,
     ) -> Result<(), sqlx::Error> {
         let _ = sqlx::query!(
