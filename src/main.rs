@@ -68,10 +68,7 @@ async fn main() {
         .layer(cors) // Add middleware (runs on every request)
         .with_state(app_state);
 
-    println!(
-        "{}",
-        format!("🚀 Server running at http://localhost:{}", config.port)
-    );
+    println!("🚀 Server running at http://localhost:{}", config.port);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &config.port))
         .await
