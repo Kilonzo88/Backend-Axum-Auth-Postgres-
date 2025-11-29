@@ -14,7 +14,7 @@ pub struct TokenClaims {
 }
 
 pub fn create_token(
-    user_id: &str,
+    user_id: String,
     secret: &[u8],
     expires_in_seconds: i64,
 ) -> Result<String, jsonwebtoken::errors::Error> {
@@ -30,7 +30,7 @@ pub fn create_token(
     let iat = now.timestamp();
     let exp = (now + Duration::seconds(expires_in_seconds)).timestamp();
     let claims = TokenClaims {
-        sub: user_id.to_string(),
+        sub: user_id,
         iat,
         exp,
     };
@@ -42,13 +42,13 @@ pub fn create_token(
     )
 }
 
-pub fn decode_token<T: Into<String>>(
-    token: T,
+pub fn decode_token(
+    token: String,
     secret: &[u8],
 ) -> Result<String, HttpError> {
     let validation = Validation::new(Algorithm::HS256);
     let decoded_token = decode::<TokenClaims>(
-        &token.into(),
+        &token,
         &DecodingKey::from_secret(secret),
         &validation,
     );
