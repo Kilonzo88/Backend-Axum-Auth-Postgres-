@@ -1,9 +1,19 @@
 #[derive(Debug, Clone)]
+pub struct SmtpConfig {
+    pub smtp_username: String,
+    pub smtp_password: String,
+    pub smtp_server: String,
+    pub smtp_port: u16,
+    pub from_email: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct Config {
     pub database_url: String,
     pub jwt_secret: String,
     pub jwt_maxage: i64,
     pub port: u16,
+    pub smtp_config: SmtpConfig,
 }
 
 impl Config {
@@ -28,6 +38,13 @@ impl Config {
             jwt_secret,
             jwt_maxage: jwt_maxage.parse().unwrap(),
             port,
+            smtp_config: SmtpConfig {
+                smtp_username: std::env::var("SMTP_USERNAME").expect("SMTP_USERNAME must be set"),
+                smtp_password: std::env::var("SMTP_PASSWORD").expect("SMTP_PASSWORD must be set"),
+                smtp_server: std::env::var("SMTP_SERVER").expect("SMTP_SERVER must be set"),
+                smtp_port: std::env::var("SMTP_PORT").expect("SMTP_PORT must be set").parse().expect("SMTP_PORT must be a valid u16"),
+                from_email: std::env::var("SMTP_FROM").expect("SMTP_FROM must be set"),
+            },
         }
     }
 }
