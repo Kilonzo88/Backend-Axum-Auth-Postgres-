@@ -23,6 +23,46 @@ pub enum EmailError {
     SmtpTransport(#[from] lettre::transport::smtp::Error),
 }
 
+/// Sends an HTML email using SMTP with template support.
+///
+/// # Arguments
+/// * `smtp_config` - SMTP server configuration
+/// * `to_email` - Recipient email address
+/// * `subject` - Email subject line
+/// * `template_path` - Path to HTML template file
+/// * `placeholders` - Key-value pairs for template substitution (e.g., `[("{{name}}", "Alice")]`)
+///
+/// # Errors
+/// Returns `EmailError` if:
+/// - Template file cannot be read
+/// - Email addresses are invalid
+/// - SMTP connection or authentication fails
+///
+/// # Example
+/// ```rust
+/// use crate::config::SmtpConfig; // Assuming SmtpConfig is in crate::config
+/// use super::send_mail; // Assuming send_mail is in the same module
+///
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     let smtp_config = SmtpConfig {
+///         smtp_username: "test@example.com".to_string(),
+///         smtp_password: "password".to_string(),
+///         smtp_server: "smtp.example.com".to_string(),
+///         smtp_port: 587,
+///         from_email: "noreply@example.com".to_string(),
+///     };
+///
+///     send_mail(
+///         &smtp_config,
+///         "user@example.com",
+///         "Welcome!",
+///         "templates/welcome.html", // Make sure this path is correct or create the file
+///         &[("{{username}}".to_string(), "Alice".to_string())]
+///     ).await?;
+///     Ok(())
+/// }
+/// ```
 pub async fn send_mail(
     smtp_config: &SmtpConfig,
     to_email: &str,
