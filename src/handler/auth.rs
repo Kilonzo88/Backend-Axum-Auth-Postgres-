@@ -1,22 +1,28 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json, Router};
+use axum::{
+    extract::{Query, State},
+    http::{header, HeaderMap, StatusCode},
+    response::IntoResponse,
+    Json, Router,
+};
+use axum_extra::extract::cookie::Cookie;
 use chrono::{Duration, Utc};
 use validator::Validate;
 use tracing::{error, info};
 use rand::Rng;
 use rand_distr::Alphanumeric;
-use rand::rngs::ThreadRng; // Add this import
+use rand::rngs::ThreadRng;
 
 use crate::{
     db::UserExt,
     dtos::{
         ForgotPasswordRequestDto, LoginUserDto, RegisteredUserDto, ResetPasswordRequestDto,
-        Response, VerifyEmailQueryDto,
+        Response, VerifyEmailQueryDto, UserLoginResponseDto,
     },
     error::{ErrorMessage, HttpError},
     mail::mails,
-    utils::password,
+    utils::{password, token},
     AppState,
 };
 
@@ -117,10 +123,63 @@ pub async fn register(
 }
 
 pub async fn login(
-    State(_app_state): State<Arc<AppState>>,
-    Json(_body): Json<LoginUserDto>,
+    State(app_state): State<Arc<AppState>>,
+    Json(body): Json<LoginUserDto>,
 ) -> Result<impl IntoResponse, HttpError> {
-    Ok((StatusCode::OK, "Login successful"))
+    // Step 1: Validation
+    body.validate()
+       .map_err(|e| HttpError::bad_request(e.to_string()))?;
+
+    // Step 2: Retrieve user from database
+    let result = app_state.db_client
+        .get_user(None, None, Some(&body.email), None)
+        .await
+        .map_err(|e| HttpError::server_error(e.to_string()))?;
+
+    let user = result.ok_or(HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))?;
+    // Step 3: Verify password
+    let password_matched = password::compare(&body.password, &user.password)
+        .map_err(|_| HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))?;
+    
+    // Step 4: If Valid, Create Token & Cookie
+    if password_matched {
+        let token = token::create_token(
+            user.id.to_string(), 
+            &app_state.env.jwt_secret.as_bytes(), 
+            app_state.env.jwt_maxage
+        )
+        .map_err(|e| HttpError::server_error(e.to_string()))?;
+
+        
+        let cookie_duration = time::Duration::minutes(app_state.env.jwt_maxage * 60);
+        let cookie = Cookie::build(("token", token.clone()))
+            .path("/")
+            .max_age(cookie_duration)
+            .http_only(true)
+            .build();
+
+        // Step 5: Build Response
+        let response = axum::response::Json(UserLoginResponseDto {
+            status: "success".to_string(),
+            token,
+        });
+
+        let mut headers = HeaderMap::new();
+
+        headers.append(
+            header::SET_COOKIE,
+            cookie.to_string().parse().unwrap(), 
+        );
+
+        let mut response = response.into_response();
+        response.headers_mut().extend(headers);
+
+        Ok(response)
+    
+    // Step 6: Invalid → Error
+    } else {
+        Err(HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))
+    }
 }
 
 pub async fn verify_email(
