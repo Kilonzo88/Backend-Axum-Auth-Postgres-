@@ -40,8 +40,8 @@ pub enum EmailError {
 ///
 /// # Example
 /// ```rust
-/// use crate::config::SmtpConfig; // Assuming SmtpConfig is in crate::config
-/// use super::send_mail; // Assuming send_mail is in the same module
+/// use crate::config::SmtpConfig; /
+/// use crate::mail::send_mail; 
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
