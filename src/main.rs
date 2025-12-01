@@ -1,5 +1,4 @@
 use axum::{
-    extract::State,
     http::{
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
         HeaderValue, Method,
@@ -11,13 +10,18 @@ use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::filter::LevelFilter;
 
-use crate::{config::Config, db::DBClient};
+use crate::{config::Config, db::DBClient, handler::auth::auth_handler};
 
 mod config;
 mod db;
 mod dtos;
 mod error;
+mod handler;
+pub mod middleware;
 mod models;
+pub mod utils;
+mod mail;
+
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub env: Config,
@@ -31,7 +35,7 @@ async fn main() {
         .with_max_level(LevelFilter::DEBUG) //Show logs at DEBUG level and higher
         .init();
 
-    // load environment variables   
+    // load environment variables
     dotenv().ok();
 
     // create database pool
@@ -55,18 +59,19 @@ async fn main() {
     let cors = CorsLayer::new()
         .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap()) //Only requests from http://localhost:3000 are allowed
         .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT]) //Configure which headers the frontend can send:
-        .allow_credentials(true)//Allows sending cookies or Authorization headers with requests. Required for authenticated requests
+        .allow_credentials(true) //Allows sending cookies or Authorization headers with requests. Required for authenticated requests
         .allow_methods([Method::GET, Method::POST, Method::PUT]); //Allowed HTTP methods
 
     let db_client = DBClient::new(pool);
-    let app_state = AppState {
+    let app_state = std::sync::Arc::new(AppState {
         env: config.clone(),
         db_client,
-    };
+    });
 
     let app = Router::new()
+        .nest("/api", auth_handler())
         .layer(cors) // Add middleware (runs on every request)
-        .with_state(app_state);
+        .with_state(app_state.clone());
 
     println!("🚀 Server running at http://localhost:{}", config.port);
 
