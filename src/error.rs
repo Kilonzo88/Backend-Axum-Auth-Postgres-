@@ -150,8 +150,8 @@ impl From<ErrorMessage> for HttpError {
     }
 }
 
-impl Into<String> for ErrorMessage {
-    fn into(self) -> String {
-        self.to_string()
+impl From<ErrorMessage> for String {
+    fn from(val: ErrorMessage) -> Self {
+        val.to_string()
     }
 }
