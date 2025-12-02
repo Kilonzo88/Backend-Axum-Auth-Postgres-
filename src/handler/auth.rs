@@ -252,9 +252,7 @@ pub async fn verify_email(
 
     headers.append(header::SET_COOKIE, cookie.to_string().parse().unwrap());
 
-    let frontend_url = "http://localhost:5173/settings";
-
-    let redirect = Redirect::to(frontend_url);
+    let redirect = Redirect::to(app_state.env.frontend_url.as_str());
 
     let mut response = redirect.into_response();
 
