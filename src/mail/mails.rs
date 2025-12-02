@@ -1,6 +1,7 @@
-use super::send_mail::{send_mail, VerificationEmailContext};
+use super::send_mail::{send_mail, VerificationEmailContext, PasswordChangedEmailContext};
 use crate::config::SmtpConfig;
 use serde::Serialize;
+use chrono::Utc;
 
 #[derive(Serialize)]
 pub struct WelcomeEmailContext {
@@ -62,4 +63,37 @@ pub async fn send_forgot_password_email(
     };
 
     send_mail(smtp_config, to_email, subject, template_name, &context).await
+}
+
+/// Sends a password changed confirmation email to the user.
+///
+/// # Arguments
+/// * `smtp_config` - SMTP server configuration
+/// * `to_email` - Recipient email address
+/// * `username` - User's display name
+///
+/// # Errors
+/// Returns `EmailError` if email sending fails
+pub async fn send_password_changed_email(
+    smtp_config: &SmtpConfig,
+    to_email: &str,
+    username: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let timestamp = Utc::now().format("%B %d, %Y at %I:%M %p UTC").to_string();
+    
+    let context = PasswordChangedEmailContext {
+        username: username.to_string(),
+        timestamp,
+    };
+
+    send_mail(
+        smtp_config,
+        to_email,
+        "Password Changed Successfully",
+        "Passwordchanged-email.html",
+        &context,
+    )
+    .await?;
+
+    Ok(())
 }
