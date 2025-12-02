@@ -14,6 +14,7 @@ pub struct Config {
     pub jwt_maxage: i64,
     pub port: u16,
     pub base_url: String,
+    pub frontend_url: String,
     pub smtp_config: SmtpConfig,
 }
 
@@ -23,6 +24,7 @@ impl Config {
         let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
         let jwt_maxage = std::env::var("JWT_MAXAGE").expect("JWT_MAXAGE must be set");
         let base_url = std::env::var("BASE_URL").expect("BASE_URL must be set");
+        let frontend_url = std::env::var("FRONTEND_URL").expect("FRONTEND_URL must be set");
 
         // Read the port from the "PORT" environment variable.
         // .ok() converts the Result (from var()) into an Option. If the var is not set, it's None.
@@ -41,6 +43,7 @@ impl Config {
             jwt_maxage: jwt_maxage.parse().unwrap(),
             port,
             base_url,
+            frontend_url,
             smtp_config: SmtpConfig {
                 smtp_username: std::env::var("SMTP_USERNAME").expect("SMTP_USERNAME must be set"),
                 smtp_password: std::env::var("SMTP_PASSWORD").expect("SMTP_PASSWORD must be set"),
