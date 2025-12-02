@@ -8,16 +8,22 @@ use axum::{
 };
 use axum_extra::extract::cookie::Cookie;
 use chrono::{Duration, Utc};
-use validator::Validate;
-use tracing::{error, info};
+use rand::rngs::ThreadRng;
 use rand::Rng;
 use rand_distr::Alphanumeric;
-use rand::rngs::ThreadRng;
+use tracing::{error, info};
+use validator::Validate;
 
 use crate::{
-    AppState, db::UserExt, dtos::{
-        ForgotPasswordRequestDto, LoginUserDto, RegisteredUserDto, ResetPasswordRequestDto, Response, UserLoginResponseDto, VerifyEmailQueryDto
-    }, error::{ErrorMessage, HttpError}, mail::mails, utils::{password, token}
+    db::UserExt,
+    dtos::{
+        ForgotPasswordRequestDto, LoginUserDto, RegisteredUserDto, ResetPasswordRequestDto,
+        Response, UserLoginResponseDto, VerifyEmailQueryDto,
+    },
+    error::{ErrorMessage, HttpError},
+    mail::mails,
+    utils::{password, token},
+    AppState,
 };
 
 /// Encapsulates all data needed to send a verification email in a background task.
@@ -56,7 +62,10 @@ async fn create_user_with_verification(
         )
         .await
         .map_err(|db_err| {
-            if db_err.as_database_error().is_some_and(|e| e.is_unique_violation()) {
+            if db_err
+                .as_database_error()
+                .is_some_and(|e| e.is_unique_violation())
+            {
                 HttpError::unique_constraint_violation(ErrorMessage::EmailExists)
             } else {
                 HttpError::server_error(db_err.to_string())
@@ -92,7 +101,10 @@ pub async fn register(
     };
 
     tokio::spawn(async move {
-        info!("Attempting to send verification email to {}", email_job_data.email_to);
+        info!(
+            "Attempting to send verification email to {}",
+            email_job_data.email_to
+        );
         match mails::send_verification_email(
             &email_job_data.app_state.env.smtp_config,
             &email_job_data.email_to,
@@ -100,9 +112,13 @@ pub async fn register(
             &email_job_data.verification_token,
             &email_job_data.app_state.env.base_url,
         )
-        .await {
+        .await
+        {
             Ok(_) => info!("Verification email sent to {}", email_job_data.email_to),
-            Err(e) => error!("Failed to send verification email to {}: {}", email_job_data.email_to, e),
+            Err(e) => error!(
+                "Failed to send verification email to {}: {}",
+                email_job_data.email_to, e
+            ),
         };
     });
 
@@ -122,29 +138,31 @@ pub async fn login(
 ) -> Result<impl IntoResponse, HttpError> {
     // Step 1: Validation
     body.validate()
-       .map_err(|e| HttpError::bad_request(e.to_string()))?;
+        .map_err(|e| HttpError::bad_request(e.to_string()))?;
 
     // Step 2: Retrieve user from database
-    let result = app_state.db_client
+    let result = app_state
+        .db_client
         .get_user(None, None, Some(&body.email), None)
         .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    let user = result.ok_or(HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))?;
+    let user = result.ok_or(HttpError::bad_request(
+        ErrorMessage::WrongCredentials.to_string(),
+    ))?;
     // Step 3: Verify password
     let password_matched = password::compare(&body.password, &user.password)
         .map_err(|_| HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))?;
-    
+
     // Step 4: If Valid, Create Token & Cookie
     if password_matched {
         let token = token::create_token(
-            user.id.to_string(), 
-            app_state.env.jwt_secret.as_bytes(), 
-            app_state.env.jwt_maxage
+            user.id.to_string(),
+            app_state.env.jwt_secret.as_bytes(),
+            app_state.env.jwt_maxage,
         )
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-        
         let cookie_duration = time::Duration::minutes(app_state.env.jwt_maxage * 60);
         let cookie = Cookie::build(("token", token.clone()))
             .path("/")
@@ -160,19 +178,18 @@ pub async fn login(
 
         let mut headers = HeaderMap::new();
 
-        headers.append(
-            header::SET_COOKIE,
-            cookie.to_string().parse().unwrap(), 
-        );
+        headers.append(header::SET_COOKIE, cookie.to_string().parse().unwrap());
 
         let mut response = response.into_response();
         response.headers_mut().extend(headers);
 
         Ok(response)
-    
+
     // Step 6: Invalid → Error
     } else {
-        Err(HttpError::bad_request(ErrorMessage::WrongCredentials.to_string()))
+        Err(HttpError::bad_request(
+            ErrorMessage::WrongCredentials.to_string(),
+        ))
     }
 }
 
@@ -180,10 +197,12 @@ pub async fn verify_email(
     Query(query_params): Query<VerifyEmailQueryDto>,
     State(app_state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, HttpError> {
-    query_params.validate()
+    query_params
+        .validate()
         .map_err(|e| HttpError::bad_request(e.to_string()))?;
 
-    let result = app_state.db_client
+    let result = app_state
+        .db_client
         .get_user(None, None, None, Some(&query_params.token))
         .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
@@ -192,26 +211,35 @@ pub async fn verify_email(
 
     if let Some(expires_at) = user.token_expires_at {
         if Utc::now() > expires_at {
-            return Err(HttpError::bad_request("Verification token has expired".to_string()))?;
+            return Err(HttpError::bad_request(
+                "Verification token has expired".to_string(),
+            ));
         }
     } else {
-        return Err(HttpError::bad_request("Invalid verification token".to_string()))?;
+        return Err(HttpError::bad_request(
+            "Invalid verification token".to_string(),
+        ));
     }
 
-    app_state.db_client.verifed_token(&query_params.token).await
+    app_state
+        .db_client
+        .verifed_token(&query_params.token)
+        .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    let send_welcome_email_result = mails::send_welcome_email( &app_state.env.smtp_config,&user.email, &user.name).await;
+    let send_welcome_email_result =
+        mails::send_welcome_email(&app_state.env.smtp_config, &user.email, &user.name).await;
 
     if let Err(e) = send_welcome_email_result {
         eprintln!("Failed to send welcome email: {}", e);
     }
 
     let token = token::create_token(
-        user.id.to_string(), 
+        user.id.to_string(),
         app_state.env.jwt_secret.as_bytes(),
-        app_state.env.jwt_maxage 
-    ).map_err(|e| HttpError::server_error(e.to_string()))?;
+        app_state.env.jwt_maxage,
+    )
+    .map_err(|e| HttpError::server_error(e.to_string()))?;
 
     let cookie_duration = time::Duration::minutes(app_state.env.jwt_maxage * 60);
     let cookie = Cookie::build(("token", token.clone()))
@@ -222,10 +250,7 @@ pub async fn verify_email(
 
     let mut headers = HeaderMap::new();
 
-    headers.append(
-        header::SET_COOKIE,
-        cookie.to_string().parse().unwrap() 
-    );
+    headers.append(header::SET_COOKIE, cookie.to_string().parse().unwrap());
 
     let frontend_url = "http://localhost:5173/settings";
 
