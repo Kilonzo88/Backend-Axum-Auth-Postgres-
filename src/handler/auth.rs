@@ -26,14 +26,20 @@ use crate::{
     AppState,
 };
 
-/// Encapsulates all data needed to send a verification email in a background task.
-/// This struct is moved into `tokio::spawn` to avoid lifetime issues.
 #[derive(Debug, Clone)]
 struct EmailJobData {
     app_state: Arc<AppState>,
     email_to: String,
     user_name: String,
     verification_token: String,
+}
+
+#[derive(Debug, Clone)]
+struct PasswordResetEmailJobData {
+    app_state: Arc<AppState>,
+    email_to: String,
+    user_name: String,
+    reset_link: String,
 }
 
 /// Helper function to encapsulate user creation and verification logic.
@@ -262,10 +268,76 @@ pub async fn verify_email(
 }
 
 pub async fn forgot_password(
-    State(_app_state): State<Arc<AppState>>,
-    Json(_body): Json<ForgotPasswordRequestDto>,
+    State(app_state): State<Arc<AppState>>,
+    Json(body): Json<ForgotPasswordRequestDto>,
 ) -> Result<impl IntoResponse, HttpError> {
-    Ok((StatusCode::OK, "Password reset email sent"))
+    body.validate()
+        .map_err(|e| HttpError::bad_request(e.to_string()))?;
+
+    if let Some(user) = app_state
+        .db_client
+        .get_user(None, None, Some(&body.email), None)
+        .await
+        .map_err(|e| HttpError::server_error(e.to_string()))?
+    {
+        let verification_token: String = ThreadRng::default()
+            .sample_iter(&Alphanumeric)
+            .take(32)
+            .map(char::from)
+            .collect();
+        let expires_at = Utc::now() + Duration::hours(1);
+
+        app_state
+            .db_client
+            .update_user_verification_token(user.id, &verification_token, expires_at)
+            .await
+            .map_err(|e| HttpError::server_error(e.to_string()))?;
+        
+        let reset_link = format!(
+            "{}/reset-password?token={}",
+            &app_state.env.frontend_url, &verification_token
+        );
+
+        let email_job_data = PasswordResetEmailJobData {
+            app_state: app_state.clone(),
+            email_to: user.email.clone(),
+            user_name: user.name.clone(),
+            reset_link,
+        };
+
+        tokio::spawn(async move {
+            info!(
+                "Attempting to send password reset email to {}",
+                email_job_data.email_to
+            );
+            match mails::send_forgot_password_email(
+                &email_job_data.app_state.env.smtp_config,
+                &email_job_data.email_to,
+                &email_job_data.user_name,
+                &email_job_data.reset_link,
+            )
+            .await
+            {
+                Ok(_) => info!(
+                    "Password reset email sent to {}",
+                    email_job_data.email_to
+                ),
+                Err(e) => error!(
+                    "Failed to send password reset email to {}: {}",
+                    email_job_data.email_to, e
+                ),
+            };
+        });
+    }
+
+    Ok((
+        StatusCode::OK,
+        Json(Response {
+            status: "success",
+            message: "If an account with that email exists, a password reset link has been sent."
+                .to_string(),
+        }),
+    ))
 }
 
 pub async fn reset_password(
