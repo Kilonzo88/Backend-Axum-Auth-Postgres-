@@ -56,7 +56,7 @@ async fn create_user_with_verification(
         )
         .await
         .map_err(|db_err| {
-            if db_err.as_database_error().map_or(false, |e| e.is_unique_violation()) {
+            if db_err.as_database_error().is_some_and(|e| e.is_unique_violation()) {
                 HttpError::unique_constraint_violation(ErrorMessage::EmailExists)
             } else {
                 HttpError::server_error(db_err.to_string())
@@ -227,9 +227,9 @@ pub async fn verify_email(
         cookie.to_string().parse().unwrap() 
     );
 
-    let frontend_url = format!("http://localhost:5173/settings");
+    let frontend_url = "http://localhost:5173/settings";
 
-    let redirect = Redirect::to(&frontend_url);
+    let redirect = Redirect::to(frontend_url);
 
     let mut response = redirect.into_response();
 
