@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{
     extract::{Query, State},
     http::{header, HeaderMap, StatusCode},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
     Json, Router,
 };
 use axum_extra::extract::cookie::Cookie;
@@ -15,15 +15,9 @@ use rand_distr::Alphanumeric;
 use rand::rngs::ThreadRng;
 
 use crate::{
-    db::UserExt,
-    dtos::{
-        ForgotPasswordRequestDto, LoginUserDto, RegisteredUserDto, ResetPasswordRequestDto,
-        Response, VerifyEmailQueryDto, UserLoginResponseDto,
-    },
-    error::{ErrorMessage, HttpError},
-    mail::mails,
-    utils::{password, token},
-    AppState,
+    AppState, db::UserExt, dtos::{
+        ForgotPasswordRequestDto, LoginUserDto, RegisteredUserDto, ResetPasswordRequestDto, Response, UserLoginResponseDto, VerifyEmailQueryDto
+    }, error::{ErrorMessage, HttpError}, mail::mails, utils::{password, token}
 };
 
 /// Encapsulates all data needed to send a verification email in a background task.
@@ -145,7 +139,7 @@ pub async fn login(
     if password_matched {
         let token = token::create_token(
             user.id.to_string(), 
-            &app_state.env.jwt_secret.as_bytes(), 
+            app_state.env.jwt_secret.as_bytes(), 
             app_state.env.jwt_maxage
         )
         .map_err(|e| HttpError::server_error(e.to_string()))?;
@@ -183,10 +177,65 @@ pub async fn login(
 }
 
 pub async fn verify_email(
-    Query(_query_params): Query<VerifyEmailQueryDto>,
-    State(_app_state): State<Arc<AppState>>,
+    Query(query_params): Query<VerifyEmailQueryDto>,
+    State(app_state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, HttpError> {
-    Ok((StatusCode::OK, "Email verified"))
+    query_params.validate()
+        .map_err(|e| HttpError::bad_request(e.to_string()))?;
+
+    let result = app_state.db_client
+        .get_user(None, None, None, Some(&query_params.token))
+        .await
+        .map_err(|e| HttpError::server_error(e.to_string()))?;
+
+    let user = result.ok_or(HttpError::unauthorized(ErrorMessage::InvalidToken))?;
+
+    if let Some(expires_at) = user.token_expires_at {
+        if Utc::now() > expires_at {
+            return Err(HttpError::bad_request("Verification token has expired".to_string()))?;
+        }
+    } else {
+        return Err(HttpError::bad_request("Invalid verification token".to_string()))?;
+    }
+
+    app_state.db_client.verifed_token(&query_params.token).await
+        .map_err(|e| HttpError::server_error(e.to_string()))?;
+
+    let send_welcome_email_result = mails::send_welcome_email( &app_state.env.smtp_config,&user.email, &user.name).await;
+
+    if let Err(e) = send_welcome_email_result {
+        eprintln!("Failed to send welcome email: {}", e);
+    }
+
+    let token = token::create_token(
+        user.id.to_string(), 
+        app_state.env.jwt_secret.as_bytes(),
+        app_state.env.jwt_maxage 
+    ).map_err(|e| HttpError::server_error(e.to_string()))?;
+
+    let cookie_duration = time::Duration::minutes(app_state.env.jwt_maxage * 60);
+    let cookie = Cookie::build(("token", token.clone()))
+        .path("/")
+        .max_age(cookie_duration)
+        .http_only(true)
+        .build();
+
+    let mut headers = HeaderMap::new();
+
+    headers.append(
+        header::SET_COOKIE,
+        cookie.to_string().parse().unwrap() 
+    );
+
+    let frontend_url = format!("http://localhost:5173/settings");
+
+    let redirect = Redirect::to(&frontend_url);
+
+    let mut response = redirect.into_response();
+
+    response.headers_mut().extend(headers);
+
+    Ok(response)
 }
 
 pub async fn forgot_password(
