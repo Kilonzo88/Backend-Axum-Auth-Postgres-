@@ -29,6 +29,12 @@ pub struct VerificationEmailContext {
     pub verification_link: String,
 }
 
+#[derive(Serialize, Debug, Clone)]
+pub struct PasswordChangedEmailContext {
+    pub username: String,
+    pub timestamp: String,
+}
+
 #[derive(Error, Debug)]
 pub enum EmailError {
     #[error("Template error: {0}")]
