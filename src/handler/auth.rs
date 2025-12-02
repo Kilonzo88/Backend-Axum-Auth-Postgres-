@@ -344,43 +344,89 @@ pub async fn reset_password(
     State(app_state): State<Arc<AppState>>,
     Json(body): Json<ResetPasswordRequestDto>,
 ) -> Result<impl IntoResponse, HttpError> {
+    // Step 1: Validate input
     body.validate()
         .map_err(|e| HttpError::bad_request(e.to_string()))?;
 
-    let result = app_state.db_client
+    // Step 2: Get user by token
+    let result = app_state
+        .db_client
         .get_user(None, None, None, Some(&body.token))
         .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    let user = result.ok_or(HttpError::bad_request("Invalid or expired token".to_string()))?;
+    let user = result.ok_or(HttpError::bad_request(
+        "Invalid or expired reset token".to_string(),
+    ))?;
 
+    // Step 3: Check token expiration
     if let Some(expires_at) = user.token_expires_at {
         if Utc::now() > expires_at {
-            return Err(HttpError::bad_request("Verification token has expired".to_string()))?;
+            return Err(HttpError::bad_request(
+                "Reset token has expired".to_string(),
+            ));
         }
-    }else {
-        return Err(HttpError::bad_request("Invalid verification token".to_string()))?;
+    } else {
+        return Err(HttpError::bad_request(
+            "Invalid reset token".to_string(),
+        ));
     }
 
-    let user_id = uuid::Uuid::parse_str(&user.id.to_string()).unwrap();
-
+    // Step 4: Hash new password
     let hash_password = password::hash(&body.new_password)
-            .map_err(|e| HttpError::server_error(e.to_string()))?;
+        .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    app_state.db_client
-        .update_user_password(user_id, hash_password)
+    // Step 5: Update password in database
+    app_state
+        .db_client
+        .update_user_password(user.id, hash_password)
         .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    app_state.db_client
+    // Step 6: Clear verification token and mark as verified
+    app_state
+        .db_client
         .verifed_token(&body.token)
         .await
         .map_err(|e| HttpError::server_error(e.to_string()))?;
 
-    let response = Response {
-        message: "Password has been successfully reset.".to_string(),
-        status: "success",
+    // Step 7: Send password changed confirmation email in background
+    let email_job_data = EmailJobData {
+        app_state: app_state.clone(),
+        email_to: user.email.clone(),
+        user_name: user.name.clone(),
+        verification_token: String::new(), // Not needed for this email
     };
 
-    Ok(Json(response))
+    tokio::spawn(async move {
+        info!(
+            "Attempting to send password change confirmation to {}",
+            email_job_data.email_to
+        );
+        match mails::send_password_changed_email(
+            &email_job_data.app_state.env.smtp_config,
+            &email_job_data.email_to,
+            &email_job_data.user_name,
+        )
+        .await
+        {
+            Ok(_) => info!(
+                "Password change confirmation sent to {}",
+                email_job_data.email_to
+            ),
+            Err(e) => error!(
+                "Failed to send password change confirmation to {}: {}",
+                email_job_data.email_to, e
+            ),
+        }
+    });
+
+    // Step 8: Return success response
+    Ok((
+        StatusCode::OK,
+        Json(Response {
+            status: "success",
+            message: "Password has been reset successfully. You can now login with your new password.".to_string(),
+        }),
+    ))
 }
