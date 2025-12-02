@@ -1,14 +1,13 @@
+use crate::config::SmtpConfig;
+use lazy_static::lazy_static;
 use lettre::{
     message::{header, SinglePart},
     transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
-use thiserror::Error;
-use tokio::fs;
-use tera::{Context, Tera};
-use lazy_static::lazy_static;
 use serde::Serialize;
-use crate::config::SmtpConfig;
+use tera::{Context, Tera};
+use thiserror::Error;
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
@@ -24,10 +23,10 @@ lazy_static! {
     };
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug, Clone)]
 pub struct VerificationEmailContext {
-    pub name: String,
-    pub verification_url: String,
+    pub username: String,
+    pub verification_link: String,
 }
 
 #[derive(Error, Debug)]
@@ -59,12 +58,12 @@ pub enum EmailError {
 /// - Template rendering fails
 /// - Email addresses are invalid
 /// - SMTP connection or authentication fails
-pub async fn send_mail(
+pub async fn send_mail<T: Serialize>(
     smtp_config: &SmtpConfig,
     to_email: &str,
     subject: &str,
     template_name: &str,
-    context: &VerificationEmailContext,
+    context: &T,
 ) -> Result<(), EmailError> {
     let context = Context::from_serialize(context)?;
     let html_template = TEMPLATES.render(template_name, &context)?;

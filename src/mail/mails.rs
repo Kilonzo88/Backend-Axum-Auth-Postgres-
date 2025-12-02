@@ -1,6 +1,6 @@
-use serde::Serialize;
-use crate::config::SmtpConfig;
 use super::send_mail::{send_mail, VerificationEmailContext};
+use crate::config::SmtpConfig;
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct WelcomeEmailContext {
@@ -22,11 +22,11 @@ pub async fn send_verification_email(
 ) -> Result<(), super::send_mail::EmailError> {
     let subject = "Email Verification";
     let template_name = "verification_email.html";
-    let verification_url = format!("{}/api/auth/verify?token={}", base_url, token);
-    
+    let verification_link = format!("{}/api/auth/verify?token={}", base_url, token);
+
     let context = VerificationEmailContext {
-        name: username.to_string(),
-        verification_url,
+        username: username.to_string(),
+        verification_link,
     };
 
     send_mail(smtp_config, to_email, subject, template_name, &context).await
@@ -39,7 +39,7 @@ pub async fn send_welcome_email(
 ) -> Result<(), super::send_mail::EmailError> {
     let subject = "Welcome to Our Application";
     let template_name = "welcome_email.html";
-    
+
     let context = WelcomeEmailContext {
         username: username.to_string(),
     };
@@ -60,6 +60,6 @@ pub async fn send_forgot_password_email(
         username: username.to_string(),
         reset_link: reset_link.to_string(),
     };
-    
+
     send_mail(smtp_config, to_email, subject, template_name, &context).await
 }
