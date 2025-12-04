@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::models::{User, UserRole};
 
 #[derive(Clone, Debug)]
-pub struct DBClient{
+pub struct DBClient {
     pool: Pool<Postgres>,
 }
 
@@ -31,11 +31,7 @@ pub trait UserExt<'a> {
     ) -> Result<Option<User>, sqlx::Error>;
 
     /// Retrieves a paginated list of users.
-    async fn get_users(
-        &self,
-        page: u32,
-        limit: usize,
-    ) -> Result<Vec<User>, sqlx::Error>;
+    async fn get_users(&self, page: u32, limit: usize) -> Result<Vec<User>, sqlx::Error>;
 
     /// Retrieves the total count of users.
     async fn get_user_count(&self) -> Result<i64, sqlx::Error>;
@@ -60,11 +56,7 @@ pub trait UserExt<'a> {
     ) -> Result<User, sqlx::Error>;
 
     /// Updates a user's role.
-    async fn update_user_role(
-        &self,
-        user_id: Uuid,
-        role: UserRole,
-    ) -> Result<User, sqlx::Error>;
+    async fn update_user_role(&self, user_id: Uuid, role: UserRole) -> Result<User, sqlx::Error>;
 
     /// Updates a user's password.
     async fn update_user_password(
@@ -75,13 +67,10 @@ pub trait UserExt<'a> {
 
     // --- Verification/Token Operations ---
     /// Verifies a user's email using a token.
-    async fn verifed_token(
-        &self,
-        token: &'a str,
-    ) -> Result<(), sqlx::Error>;
+    async fn verifed_token(&self, token: &'a str) -> Result<(), sqlx::Error>;
 
     /// Adds a verification token to a user.
-    async fn add_verifed_token(
+    async fn update_user_verification_token(
         &self,
         user_id: Uuid,
         token: &'a str,
@@ -101,9 +90,9 @@ impl<'a> UserExt<'a> for DBClient {
         let mut user: Option<User> = None;
 
         if let Some(user_id) = user_id {
-        //query_as!(User, "SQL...", params)
-        //          ^^^^   ^^^^^^   ^^^^^^
-        //          Type   Query    Parameters
+            //query_as!(User, "SQL...", params)
+            //          ^^^^   ^^^^^^   ^^^^^^
+            //          Type   Query    Parameters
             user = sqlx::query_as!(
                 User,
                 r#"SELECT id, name, email, password, verified, created_at, updated_at, verification_token, token_expires_at, role as "role: UserRole" 
@@ -143,11 +132,7 @@ impl<'a> UserExt<'a> for DBClient {
         Ok(user)
     }
 
-    async fn get_users(
-        &self,
-        page: u32,
-        limit: usize,
-    ) -> Result<Vec<User>, sqlx::Error> {
+    async fn get_users(&self, page: u32, limit: usize) -> Result<Vec<User>, sqlx::Error> {
         let offset = (page - 1) * limit as u32;
 
         let users = sqlx::query_as!(
@@ -196,13 +181,12 @@ impl<'a> UserExt<'a> for DBClient {
     }
 
     async fn get_user_count(&self) -> Result<i64, sqlx::Error> {
-        let count = sqlx::query_scalar!(//s a sqlx macro for queries returning a single scalar value (here, COUNT(*) – the total rows in users).
+        let count = sqlx::query_scalar!(
+            //s a sqlx macro for queries returning a single scalar value (here, COUNT(*) – the total rows in users).
             r#"SELECT COUNT(*) FROM users"#
         )
-       .fetch_one(&self.pool) // Executes the query and fetches exactly one row (scalar row).
-
-
-       .await?;
+        .fetch_one(&self.pool) // Executes the query and fetches exactly one row (scalar row).
+        .await?;
 
         Ok(count.unwrap_or(0))
     }
@@ -210,7 +194,7 @@ impl<'a> UserExt<'a> for DBClient {
     async fn update_user_name<T: Into<String> + Send>(
         &self,
         user_id: Uuid,
-        name: T
+        name: T,
     ) -> Result<User, sqlx::Error> {
         let user = sqlx::query_as!(
             User,
@@ -228,11 +212,7 @@ impl<'a> UserExt<'a> for DBClient {
         Ok(user)
     }
 
-    async fn update_user_role(
-        &self,
-        user_id: Uuid,
-        role: UserRole
-    ) -> Result<User, sqlx::Error> {
+    async fn update_user_role(&self, user_id: Uuid, role: UserRole) -> Result<User, sqlx::Error> {
         let user = sqlx::query_as!(
             User,
             r#"
@@ -252,7 +232,7 @@ impl<'a> UserExt<'a> for DBClient {
     async fn update_user_password(
         &self,
         user_id: Uuid,
-        password: String
+        password: String,
     ) -> Result<User, sqlx::Error> {
         let user = sqlx::query_as!(
             User,
@@ -270,11 +250,8 @@ impl<'a> UserExt<'a> for DBClient {
         Ok(user)
     }
 
-    async fn verifed_token(
-        &self,
-        token: &'a str,
-    ) -> Result<(), sqlx::Error> {
-        let _ =sqlx::query!(
+    async fn verifed_token(&self, token: &'a str) -> Result<(), sqlx::Error> {
+        let _ = sqlx::query!(
             r#"
             UPDATE users
             SET verified = true,
@@ -284,13 +261,14 @@ impl<'a> UserExt<'a> for DBClient {
             WHERE verification_token = $1
             "#,
             token
-        ).execute(&self.pool)
-       .await;
+        )
+        .execute(&self.pool)
+        .await;
 
         Ok(())
     }
 
-    async fn add_verifed_token(
+    async fn update_user_verification_token(
         &self,
         user_id: Uuid,
         token: &'a str,
@@ -305,8 +283,9 @@ impl<'a> UserExt<'a> for DBClient {
             token,
             expires_at,
             user_id,
-        ).execute(&self.pool)
-       .await?;
+        )
+        .execute(&self.pool)
+        .await?;
 
         Ok(())
     }

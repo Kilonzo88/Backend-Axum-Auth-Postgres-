@@ -26,7 +26,7 @@ pub enum ErrorMessage {
     TokenNotProvided,
     PermissionDenied,
     UserNotAuthenticated,
-    InvalidHashFormat, 
+    InvalidHashFormat,
     InternalServerError(String),
     BadRequest(String),
 }
@@ -57,7 +57,7 @@ impl fmt::Display for ErrorMessage {
             }
             ErrorMessage::UserNotAuthenticated => {
                 write!(f, "Authentication required. Please log in.")
-            },
+            }
             ErrorMessage::InternalServerError(s) => write!(f, "Internal Server Error: {}", s),
             ErrorMessage::BadRequest(s) => write!(f, "Bad Request: {}", s),
         }

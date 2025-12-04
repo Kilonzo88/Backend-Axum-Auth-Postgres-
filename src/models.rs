@@ -7,7 +7,29 @@ use serde::{Deserialize, Serialize};
 pub enum UserRole {
     Admin,
     User,
-    Guest,
+    
+}
+
+impl  UserRole {
+    pub fn to_str(&self) -> &str {
+        match self {
+            UserRole::Admin => "admin",
+            UserRole::User => "user",
+            
+        }
+    }
+}
+
+impl TryFrom<String> for UserRole {
+    type Error = &'static str;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "admin" => Ok(UserRole::Admin),
+            "user" => Ok(UserRole::User),
+            _ => Err("Invalid user role"),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, sqlx::FromRow)]

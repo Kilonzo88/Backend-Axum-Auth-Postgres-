@@ -1,26 +1,28 @@
+use std::sync::Arc;
 use axum::{
     http::{
         header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
         HeaderValue, Method,
     },
-    Router,
+    serve,
 };
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::CorsLayer;
 use tracing_subscriber::filter::LevelFilter;
 
-use crate::{config::Config, db::DBClient, handler::auth::auth_handler};
+use crate::{config::Config, db::DBClient, router::create_router};
 
+mod models;
 mod config;
-mod db;
 mod dtos;
 mod error;
-mod handler;
-pub mod middleware;
-mod models;
-pub mod utils;
+mod db;
+mod utils;
+mod middleware;
 mod mail;
+mod handler;
+mod router;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
@@ -29,55 +31,54 @@ pub struct AppState {
 }
 
 #[tokio::main]
-async fn main() {
-    // initialize tracing
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
-        .with_max_level(LevelFilter::DEBUG) //Show logs at DEBUG level and higher
-        .init();
+    .with_max_level(LevelFilter::DEBUG)
+    .init();
 
-    // load environment variables
     dotenv().ok();
 
-    // create database pool
     let config = Config::init();
+
     let pool = match PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&config.database_url)
-        .await
+            .max_connections(10)
+            .connect(&config.database_url)
+            .await
     {
         Ok(pool) => {
-            println!("✅ Database pool created successfully.");
+            println!("✅Connection to the database is successful!");
             pool
         }
-        Err(e) => {
-            println!("❌ Failed to create database pool: {:?}", e);
+        Err(err) => {
+            println!("🔥 Failed to connect to the database: {:?}", err);
             std::process::exit(1);
         }
     };
 
-    // CORS configuration
     let cors = CorsLayer::new()
-        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap()) //Only requests from http://localhost:3000 are allowed
-        .allow_headers([AUTHORIZATION, CONTENT_TYPE, ACCEPT]) //Configure which headers the frontend can send:
-        .allow_credentials(true) //Allows sending cookies or Authorization headers with requests. Required for authenticated requests
-        .allow_methods([Method::GET, Method::POST, Method::PUT]); //Allowed HTTP methods
+        .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap())
+        .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
+        .allow_credentials(true)
+        .allow_methods([Method::GET, Method::POST,Method::PUT]);
 
     let db_client = DBClient::new(pool);
-    let app_state = std::sync::Arc::new(AppState {
+    let app_state = AppState {
         env: config.clone(),
         db_client,
-    });
+    };
 
-    let app = Router::new()
-        .nest("/api", auth_handler())
-        .layer(cors) // Add middleware (runs on every request)
-        .with_state(app_state.clone());
+    let app = create_router(Arc::new(app_state.clone())).layer(cors.clone());
 
-    println!("🚀 Server running at http://localhost:{}", config.port);
+    
+    println!(
+        "{}",
+        format!("🚀 Server is running on http://localhost:{}", config.port)
+    );
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &config.port))
-        .await
-        .expect("❌ Failed to bind to address");
+    .await
+    .unwrap();
 
-    axum::serve(listener, app).await.unwrap();
+    serve(listener, app).await?;
+    Ok(())
 }

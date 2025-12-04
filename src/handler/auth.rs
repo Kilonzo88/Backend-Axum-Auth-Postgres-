@@ -42,6 +42,15 @@ struct PasswordResetEmailJobData {
     reset_link: String,
 }
 
+pub fn auth_handler() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/register", axum::routing::post(register))
+        .route("/login", axum::routing::post(login))
+        .route("/verify", axum::routing::get(verify_email))
+        .route("/forgot-password", axum::routing::post(forgot_password))
+        .route("/reset-password", axum::routing::post(reset_password))
+}
+
 /// Helper function to encapsulate user creation and verification logic.
 async fn create_user_with_verification(
     app_state: Arc<AppState>,
@@ -81,14 +90,7 @@ async fn create_user_with_verification(
     Ok(verification_token)
 }
 
-pub fn auth_handler() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/register", axum::routing::post(register))
-        .route("/login", axum::routing::post(login))
-        .route("/verify", axum::routing::get(verify_email))
-        .route("/forgot-password", axum::routing::post(forgot_password))
-        .route("/reset-password", axum::routing::post(reset_password))
-}
+
 
 pub async fn register(
     State(app_state): State<Arc<AppState>>,

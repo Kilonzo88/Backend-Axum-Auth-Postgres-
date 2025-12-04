@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{State, Request}, // Added State
+    extract::{Request, State},  // Added State
     http::{header, StatusCode}, // Added header and StatusCode
     middleware::Next,
     response::IntoResponse,
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid; // Added Uuid
 
 use crate::{
-    db::UserExt, // Added UserExt
+    db::UserExt,                      // Added UserExt
     error::{ErrorMessage, HttpError}, // Added ErrorMessage
     models::{User, UserRole},
     utils::token, // Added token
@@ -21,9 +21,33 @@ use crate::{
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JWTAuthMiddleware {
+    //Authenticated user data
     pub user: User,
 }
 
+/*
+1. Extract token from cookie/header
+   token = "eyJhbGci..."
+      ↓
+2. Decode JWT
+   user_id_string = "550e8400-e29b-41d4-a716-446655440000"
+      ↓
+3. Parse to UUID
+   user_id = Uuid(550e8400-e29b-41dd4-a716-446655440000)
+      ↓
+4. Query database
+   SELECT * FROM users WHERE id = ?
+      ↓
+5. User found?
+   Yes → user = User { id, name, email, role, ... }
+   No → Return 401 "User no longer exists"
+      ↓
+6. Attach to request
+   req.extensions = { JWTAuthMiddleware { user } }
+      ↓
+7. Continue to next handler
+   Ok(next.run(req).await)
+*/
 pub async fn auth(
     cookie_jar: CookieJar,
     State(app_state): State<Arc<AppState>>, // Changed Extension to State and removed _
@@ -48,8 +72,7 @@ pub async fn auth(
 
     let token = token.ok_or_else(|| HttpError::unauthorized(ErrorMessage::TokenNotProvided))?;
 
-    let user_id_string =
-        token::decode_token(token, app_state.env.jwt_secret.as_bytes())?;
+    let user_id_string = token::decode_token(token, app_state.env.jwt_secret.as_bytes())?;
 
     let user_id = Uuid::parse_str(&user_id_string)
         .map_err(|_| HttpError::unauthorized(ErrorMessage::InvalidToken))?;
@@ -58,12 +81,11 @@ pub async fn auth(
         .db_client
         .get_user(Some(user_id), None, None, None)
         .await
-        .map_err(|_| HttpError::unauthorized(ErrorMessage::UserNoLongerExists))? // Corrected UserNoLongerExist to UserNoLongerExists
-        .ok_or_else(|| HttpError::unauthorized(ErrorMessage::UserNoLongerExists))?; // Corrected UserNoLongerExist to UserNoLongerExists
+        .map_err(|_| HttpError::unauthorized(ErrorMessage::UserNoLongerExists))?
+        .ok_or_else(|| HttpError::unauthorized(ErrorMessage::UserNoLongerExists))?;
 
-    req.extensions_mut().insert(JWTAuthMiddleware { // Fixed typo JWTAuthMiddeware
-        user: user.clone(),
-    });
+    req.extensions_mut()
+        .insert(JWTAuthMiddleware { user: user.clone() });
 
     Ok(next.run(req).await)
 }

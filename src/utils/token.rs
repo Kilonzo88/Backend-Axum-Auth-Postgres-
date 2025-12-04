@@ -1,10 +1,10 @@
 use axum::http::StatusCode;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation, Algorithm}; // Added decode, encode
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation}; // Added decode, encode
 use serde::{Deserialize, Serialize};
 use tracing; // Added tracing import
 
-use crate::error::{HttpError, ErrorMessage};
+use crate::error::{ErrorMessage, HttpError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {
@@ -42,7 +42,8 @@ pub fn create_token(
     )
 }
 
-pub fn decode_token<T: Into<String>>( // Made generic
+pub fn decode_token<T: Into<String>>(
+    // Made generic
     token: T,
     secret: &[u8],
 ) -> Result<String, HttpError> {
@@ -57,7 +58,10 @@ pub fn decode_token<T: Into<String>>( // Made generic
         Ok(token_data) => Ok(token_data.claims.sub),
         Err(e) => {
             tracing::error!("Failed to decode token: {:?}", e); // Log the specific error
-            Err(HttpError::new(ErrorMessage::InvalidToken, StatusCode::UNAUTHORIZED))
+            Err(HttpError::new(
+                ErrorMessage::InvalidToken,
+                StatusCode::UNAUTHORIZED,
+            ))
         }
     }
 }
