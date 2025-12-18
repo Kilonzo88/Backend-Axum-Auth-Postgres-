@@ -69,11 +69,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = create_router(Arc::new(app_state.clone())).layer(cors.clone());
 
-    
-    println!(
-        "{}",
-        format!("🚀 Server is running on http://localhost:{}", config.port)
-    );
+
+    println!("🚀 Server is running on http://localhost:{}", config.port);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &config.port))
     .await
