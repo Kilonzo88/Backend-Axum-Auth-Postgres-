@@ -1,0 +1,266 @@
+<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#3498db" />
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#27ae60" />
+    </marker>
+    <marker id="arroworange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e67e22" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1400" height="900" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="700" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#2c3e50">
+    Axum Auth Backend Architecture - Production-Grade Template
+  </text>
+  
+  <!-- Layer 1: Client -->
+  <g id="client">
+    <rect x="20" y="380" width="120" height="80" rx="10" fill="#ecf0f1" stroke="#3498db" stroke-width="2"/>
+    <text x="80" y="405" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">HTTP Client</text>
+    <text x="80" y="420" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#2c3e50">Frontend/Mobile</text>
+    <text x="80" y="445" font-family="Arial, sans-serif" font-size="24" text-anchor="middle">🌐</text>
+  </g>
+  
+  <!-- Layer 2: API Gateway (Axum) -->
+  <g id="api-gateway">
+    <rect x="170" y="340" width="150" height="160" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="3"/>
+    <text x="245" y="360" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#2c3e50">Axum Framework</text>
+    <text x="245" y="375" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#7f8c8d">Port 8000</text>
+    <rect x="180" y="385" width="130" height="30" rx="5" fill="white" stroke="#3498db" stroke-width="1"/>
+    <text x="245" y="403" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#2c3e50">Routes Handler</text>
+    <rect x="180" y="420" width="130" height="25" rx="5" fill="white" stroke="#3498db" stroke-width="1"/>
+    <text x="245" y="436" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Request Validation</text>
+    <rect x="180" y="450" width="130" height="25" rx="5" fill="white" stroke="#3498db" stroke-width="1"/>
+    <text x="245" y="466" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Error Handling</text>
+  </g>
+  
+  <!-- Layer 3: Middleware -->
+  <g id="middleware">
+    <rect x="170" y="120" width="150" height="180" rx="10" fill="#ecf0f1" stroke="#95a5a6" stroke-width="3"/>
+    <text x="245" y="140" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#2c3e50">Middleware Pipeline</text>
+    <rect x="180" y="150" width="130" height="35" rx="5" fill="white" stroke="#27ae60" stroke-width="2"/>
+    <text x="245" y="165" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#2c3e50">Auth Middleware</text>
+    <text x="245" y="178" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">🔒 JWT Verification</text>
+    <rect x="180" y="195" width="130" height="30" rx="5" fill="white" stroke="#95a5a6" stroke-width="1"/>
+    <text x="245" y="213" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#2c3e50">Logging Middleware</text>
+    <rect x="180" y="230" width="130" height="35" rx="5" fill="white" stroke="#95a5a6" stroke-width="1"/>
+    <text x="245" y="245" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#2c3e50">CORS & Security</text>
+    <text x="245" y="258" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#7f8c8d">Headers</text>
+  </g>
+  
+  <!-- Layer 4: Handlers -->
+  <g id="handlers">
+    <!-- Auth Handlers -->
+    <rect x="360" y="120" width="160" height="180" rx="10" fill="#e8f5e9" stroke="#27ae60" stroke-width="2"/>
+    <text x="440" y="140" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Auth Handlers</text>
+    <text x="440" y="160" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Register</text>
+    <text x="440" y="175" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Login</text>
+    <text x="440" y="190" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Refresh Token</text>
+    <text x="440" y="205" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Logout</text>
+    <text x="440" y="220" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Email Verification</text>
+    <text x="440" y="235" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#27ae60">• Password Reset</text>
+    
+    <!-- User Handlers -->
+    <rect x="360" y="320" width="160" height="130" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="2"/>
+    <text x="440" y="340" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">User Handlers</text>
+    <text x="440" y="360" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#3498db">• Get Current User</text>
+    <text x="440" y="375" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#3498db">• Update User</text>
+    <text x="440" y="390" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#3498db">• Delete User</text>
+    <text x="440" y="405" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#3498db">• Change Password</text>
+  </g>
+  
+  <!-- Layer 5: Services -->
+  <g id="services">
+    <!-- Auth Service -->
+    <rect x="560" y="120" width="150" height="110" rx="10" fill="#e8f5e9" stroke="#27ae60" stroke-width="2"/>
+    <text x="635" y="140" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Auth Service</text>
+    <text x="635" y="158" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Token Generation (JWT)</text>
+    <text x="635" y="173" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Token Validation</text>
+    <text x="635" y="188" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Session Management</text>
+    <text x="635" y="203" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Password Hash (Argon2)</text>
+    
+    <!-- User Service -->
+    <rect x="560" y="250" width="150" height="90" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="2"/>
+    <text x="635" y="270" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">User Service</text>
+    <text x="635" y="288" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">User CRUD Operations</text>
+    <text x="635" y="303" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Profile Management</text>
+    <text x="635" y="318" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">User Validation</text>
+    
+    <!-- Email Service -->
+    <rect x="560" y="360" width="150" height="90" rx="10" fill="#ffeaa7" stroke="#e67e22" stroke-width="2"/>
+    <text x="635" y="380" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Email Service</text>
+    <text x="635" y="398" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">SMTP Connection</text>
+    <text x="635" y="413" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Email Templates</text>
+    <text x="635" y="428" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Verification & Reset</text>
+  </g>
+  
+  <!-- Layer 6: Database Layer -->
+  <g id="db-layer">
+    <rect x="750" y="520" width="180" height="110" rx="10" fill="#f3e5f5" stroke="#9b59b6" stroke-width="2"/>
+    <text x="840" y="540" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Database Layer (SQLx)</text>
+    <text x="840" y="560" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Connection Pool</text>
+    <text x="840" y="575" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Query Builders</text>
+    <text x="840" y="590" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Migrations</text>
+    <text x="840" y="605" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#9b59b6">Compile-time SQL Checks</text>
+  </g>
+  
+  <!-- Layer 7: PostgreSQL Database -->
+  <g id="database">
+    <ellipse cx="840" cy="710" rx="85" ry="30" fill="#f3e5f5" stroke="#9b59b6" stroke-width="2"/>
+    <path d="M 755,710 Q 755,740 840,740 Q 925,740 925,710" fill="#e1bee7" stroke="#9b59b6" stroke-width="2"/>
+    <line x1="755" y1="710" x2="755" y2="740" stroke="#9b59b6" stroke-width="2"/>
+    <line x1="925" y1="710" x2="925" y2="740" stroke="#9b59b6" stroke-width="2"/>
+    <text x="840" y="700" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">PostgreSQL</text>
+    <text x="840" y="720" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#2c3e50">users • refresh_tokens</text>
+    <text x="840" y="733" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#2c3e50">verification_tokens • reset_tokens</text>
+  </g>
+  
+  <!-- Layer 8: Utilities -->
+  <g id="utilities">
+    <rect x="970" y="120" width="150" height="150" rx="10" fill="#ecf0f1" stroke="#95a5a6" stroke-width="2"/>
+    <text x="1045" y="140" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Utility Modules</text>
+    <text x="1045" y="160" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">JWT Utils</text>
+    <text x="1045" y="173" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d">(Sign/Verify)</text>
+    <text x="1045" y="190" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Password Utils</text>
+    <text x="1045" y="203" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d">(Hash/Verify)</text>
+    <text x="1045" y="220" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Validation Utils</text>
+    <text x="1045" y="240" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Error Types</text>
+  </g>
+  
+  <!-- Side Panel: Key Features -->
+  <g id="features">
+    <rect x="1160" y="120" width="220" height="150" rx="10" fill="#fff9c4" stroke="#f39c12" stroke-width="2"/>
+    <text x="1270" y="140" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Key Features</text>
+    <text x="1170" y="160" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ JWT Access & Refresh Tokens</text>
+    <text x="1170" y="177" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ Argon2 Password Hashing</text>
+    <text x="1170" y="194" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ Email Verification Flow</text>
+    <text x="1170" y="211" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ Password Reset Flow</text>
+    <text x="1170" y="228" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ Role-Based Access Control</text>
+    <text x="1170" y="245" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">✓ SQLx Compile-time Checks</text>
+  </g>
+  
+  <!-- Side Panel: Security -->
+  <g id="security">
+    <rect x="1160" y="290" width="220" height="140" rx="10" fill="#ffebee" stroke="#e74c3c" stroke-width="2"/>
+    <text x="1270" y="310" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Security Layers</text>
+    <text x="1170" y="330" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 HTTPS Ready</text>
+    <text x="1170" y="347" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 CORS Protection</text>
+    <text x="1170" y="364" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 SQL Injection Prevention</text>
+    <text x="1170" y="381" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 XSS Protection</text>
+    <text x="1170" y="398" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 Token Rotation</text>
+    <text x="1170" y="415" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">🔒 Rate Limiting Ready</text>
+  </g>
+  
+  <!-- Side Panel: Tech Stack -->
+  <g id="tech-stack">
+    <rect x="20" y="520" width="140" height="130" rx="10" fill="#e8f5e9" stroke="#27ae60" stroke-width="2"/>
+    <text x="90" y="540" font-family="Arial, sans-serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#2c3e50">Tech Stack</text>
+    <text x="90" y="560" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Axum + Tokio</text>
+    <text x="90" y="577" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">PostgreSQL + SQLx</text>
+    <text x="90" y="594" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">JWT + Argon2</text>
+    <text x="90" y="611" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Lettre (SMTP)</text>
+    <text x="90" y="628" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">Serde + Validator</text>
+  </g>
+  
+  <!-- Example Flow Box -->
+  <g id="example-flow">
+    <rect x="190" y="520" width="200" height="130" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="2"/>
+    <text x="290" y="540" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#2c3e50">Example Flow</text>
+    <text x="205" y="560" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#2c3e50" font-family="monospace">POST /api/auth/login</text>
+    <text x="205" y="575" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#2c3e50">→ Validation</text>
+    <text x="205" y="590" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#2c3e50">→ Auth Handler</text>
+    <text x="205" y="605" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#2c3e50">→ Auth Service</text>
+    <text x="205" y="620" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#2c3e50">→ Database Query</text>
+    <text x="205" y="635" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#3498db">← 200 OK + JWT</text>
+  </g>
+  
+  <!-- Annotations -->
+  <g id="annotations">
+    <text x="245" y="320" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d" font-style="italic">
+      Protected routes require valid JWT
+    </text>
+    <text x="635" y="250" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d" font-style="italic">
+      Access: 1hr | Refresh: 7 days
+    </text>
+    <text x="840" y="655" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d" font-style="italic">
+      Compile-time SQL verification
+    </text>
+    <text x="635" y="470" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#7f8c8d" font-style="italic">
+      Async SMTP email sending
+    </text>
+  </g>
+  
+  <!-- Main Request Flow Arrows -->
+  <line x1="140" y1="420" x2="170" y2="420" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)"/>
+  <text x="155" y="413" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#3498db">HTTP</text>
+  
+  <line x1="320" y1="210" x2="360" y2="210" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)"/>
+  <text x="340" y="203" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#3498db">Pipeline</text>
+  
+  <line x1="245" y1="300" x2="245" y2="340" stroke="#95a5a6" stroke-width="2" marker-end="url(#arrowblue)"/>
+  
+  <line x1="520" y1="175" x2="560" y2="175" stroke="#27ae60" stroke-width="2" marker-end="url(#arrowgreen)"/>
+  <line x1="520" y1="295" x2="560" y2="295" stroke="#3498db" stroke-width="2" marker-end="url(#arrowblue)"/>
+  <line x1="520" y1="385" x2="560" y2="405" stroke="#e67e22" stroke-width="2" marker-end="url(#arroworange)"/>
+  
+  <!-- Services to Database -->
+  <line x1="710" y1="200" x2="780" y2="520" stroke="#9b59b6" stroke-width="2" marker-end="url(#arrowblue)"/>
+  <line x1="710" y1="295" x2="780" y2="520" stroke="#9b59b6" stroke-width="2" marker-end="url(#arrowblue)"/>
+  
+  <!-- Database Layer to PostgreSQL -->
+  <line x1="840" y1="630" x2="840" y2="680" stroke="#9b59b6" stroke-width="2" marker-end="url(#arrowblue)"/>
+  <text x="860" y="660" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#9b59b6">SQL</text>
+  
+  <!-- Utilities dotted lines -->
+  <line x1="710" y1="175" x2="970" y2="175" stroke="#95a5a6" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="710" y1="195" x2="970" y2="210" stroke="#95a5a6" stroke-width="1" stroke-dasharray="5,5"/>
+  
+  <!-- Email Service to External -->
+  <path d="M 710,405 Q 800,405 800,465" stroke="#e67e22" stroke-width="2" fill="none" marker-end="url(#arroworange)"/>
+  <rect x="770" y="465" width="90" height="30" rx="5" fill="#ffeaa7" stroke="#e67e22" stroke-width="1"/>
+  <text x="815" y="483" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="#2c3e50">📧 SMTP Server</text>
+  
+  <!-- Auth Flow indicator -->
+  <path d="M 360,245 Q 330,245 330,210 Q 330,175 360,175" stroke="#27ae60" stroke-width="2" fill="none" stroke-dasharray="3,3"/>
+  <text x="340" y="210" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="#27ae60" transform="rotate(-90 340,210)">Auth Flow</text>
+  
+  <!-- Legend -->
+  <g id="legend">
+    <text x="420" y="690" font-family="Arial, sans-serif" font-size="11" font-weight="bold" text-anchor="start" fill="#2c3e50">Legend:</text>
+    <rect x="420" y="700" width="30" height="15" rx="3" fill="#e3f2fd" stroke="#3498db" stroke-width="1"/>
+    <text x="455" y="711" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">HTTP/API Layer</text>
+    <rect x="560" y="700" width="30" height="15" rx="3" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+    <text x="595" y="711" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">Authentication</text>
+    <rect x="420" y="720" width="30" height="15" rx="3" fill="#f3e5f5" stroke="#9b59b6" stroke-width="1"/>
+    <text x="455" y="731" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">Database</text>
+    <rect x="560" y="720" width="30" height="15" rx="3" fill="#ffeaa7" stroke="#e67e22" stroke-width="1"/>
+    <text x="595" y="731" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">External Services</text>
+    <rect x="700" y="720" width="30" height="15" rx="3" fill="#ecf0f1" stroke="#95a5a6" stroke-width="1"/>
+    <text x="735" y="731" font-family="Arial, sans-serif" font-size="9" text-anchor="start" fill="#2c3e50">Middleware/Utils</text>
+  </g>
+  
+  <!-- Response arrow back -->
+  <path d="M 170,460 Q 140,480 140,440" stroke="#3498db" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  <text x="150" y="470" font-family="Arial, sans-serif" font-size="8" text-anchor="start" fill="#3498db">Response</text>
+  
+  <!-- Protected vs Public Routes -->
+  <rect x="245" y="275" width="40" height="20" rx="3" fill="#e8f5e9" stroke="#27ae60" stroke-width="1"/>
+  <text x="265" y="288" font-family="Arial, sans-serif" font-size="7" text-anchor="middle" fill="#27ae60">Protected</text>
+  <line x1="285" y1="285" x2="360" y2="375" stroke="#27ae60" stroke-width="1" stroke-dasharray="2,2"/>
+  
+  <!-- Security icons -->
+  <text x="440" y="120" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">🔒</text>
+  <text x="635" y="120" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">🛡️</text>
+  <text x="840" y="520" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">🗄️</text>
+  
+  <!-- Footer note -->
+  <text x="700" y="875" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#7f8c8d" font-style="italic">
+    Clean Architecture • Type-Safe • Production-Ready • Built with Rust
+  </text>
+</svg>
