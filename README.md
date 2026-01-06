@@ -4,7 +4,7 @@ A production-ready Rust backend template built with Axum, featuring custom authe
 
 ### Architecture Diagram
 <p align="center">
-  <img src="../axum_auth_architecture.svg" alt="Axum Auth Architecture" width="800"/>
+  <img src="./axum_auth_architecture.svg" alt="Axum Auth Architecture" width="800"/>
 </p>
 
 ## Purpose
