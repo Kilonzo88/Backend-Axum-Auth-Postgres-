@@ -63,7 +63,7 @@ This repository is designed to be a **production-grade template** for developers
 
 ## Prerequisites
 
-- **Rust** (1.70 or later) - [Install Rust](https://rustup.rs/)
+- **Rust** (1.91.1 or later version) - [Install Rust](https://rustup.rs/)
 - **PostgreSQL** (14 or later) - [Install PostgreSQL](https://www.postgresql.org/download/)
 - **SQLx CLI** - For database migrations
   ```bash
