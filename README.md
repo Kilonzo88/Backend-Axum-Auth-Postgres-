@@ -2,6 +2,11 @@
 
 A production-ready Rust backend template built with Axum, featuring custom authentication, PostgreSQL integration, and email capabilities. This project serves as a comprehensive starting point for building secure, scalable web applications.
 
+### Architecture Diagram
+<p align="center">
+  <img src="../axum_auth_architecture.svg" alt="Axum Auth Architecture" width="800"/>
+</p>
+
 ## Purpose
 
 This repository is designed to be a **production-grade template** for developers who need:
